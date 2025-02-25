@@ -2,7 +2,6 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
 import os
-from datetime import datetime
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -13,25 +12,8 @@ df_path = r"C:\Users\h\Desktop\week 10\Data\BrentOilPrices.csv"
 
 # Check if the file exists and is not empty
 if os.path.exists(df_path) and os.path.getsize(df_path) > 0:
-    # Load the CSV file without parsing dates
-    data = pd.read_csv(df_path, dtype={'Date': str})  # Read 'Date' as strings
-
-    # Define a flexible date parser function
-    def parse_date(date_str):
-        try:
-            # Try parsing as 'DD-MMM-YY' (e.g., 20-May-87)
-            return datetime.strptime(date_str, '%d-%b-%y')
-        except ValueError:
-            try:
-                # Try parsing as 'MMM DD, YYYY' (e.g., Apr 22, 2020)
-                return datetime.strptime(date_str, '%b %d, %Y')
-            except ValueError:
-                # If both formats fail, raise an error
-                raise ValueError(f"Date format not recognized: {date_str}")
-
-    # Convert the 'Date' column to datetime using the custom parser
-    data['Date'] = data['Date'].apply(parse_date)
-    data.set_index('Date', inplace=True)  # Set 'Date' as the index
+    # Load the CSV file
+    data = pd.read_csv(df_path, parse_dates=['Date'], index_col='Date')
     data.reset_index(inplace=True)
     data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')  # Convert dates to strings for JSON serialization
 else:
